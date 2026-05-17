@@ -95,6 +95,17 @@ Página inicial do site
 ### 2. Sistema de loguin
 Acesso seguro com matrícula e senha.
 ![Tela de Login](https://github.com/emmanuelrz04/Gerenciamento_de_alunos/blob/main/Screenshots/SC2.png?raw=true)
+
+### 3. Gerenciamento de faltas ao longo do mês
+![Tela de Login](https://github.com/emmanuelrz04/Gerenciamento_de_alunos/blob/main/Screenshots/SC3.png?raw=true)
+
+### 4. Lista de Alunos (Demais imagens)
+- Registro de presença (Presente, Falta, Atestado)
+- Relatório individual com gráfico
+- Calendário de presenças
+- Relatório de faltas para impressão
+![Tela de Login](https://github.com/emmanuelrz04/Gerenciamento_de_alunos/blob/main/Screenshots/SC4.png?raw=true)
+
 ---
 
 ## Como Executar o Projeto
