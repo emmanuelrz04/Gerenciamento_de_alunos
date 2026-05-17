@@ -99,7 +99,7 @@ Acesso seguro com matrícula e senha.
 ### 3. Gerenciamento de faltas ao longo do mês
 ![Tela de Login](https://github.com/emmanuelrz04/Gerenciamento_de_alunos/blob/main/Screenshots/SC3.png?raw=true)
 
-### 4. Lista de Alunos (Demais imagens)
+### 4. Lista de Alunos
 - Registro de presença (Presente, Falta, Atestado)
 - Relatório individual com gráfico
 - Calendário de presenças
