@@ -1,0 +1,204 @@
+{% extends "base.html" %}
+
+{% block title %}Alunos - Espaço Saber{% endblock %}
+
+{% block content %}
+<div class="card">
+    <div class="card-header">
+        <div class="card-header-actions">
+            <div>
+                <h2>Sistema de Presença • Professora de Reforço</h2>
+                <p style="margin: 0; font-size: 0.8rem; opacity: 0.9;">Registro automático de faltas com cálculo de porcentagem de presença</p>
+            </div>
+            <div class="manage-buttons">
+               
+            </div>
+        </div>
+    </div>
+    
+    <div class="card-body">
+        <!-- Barra de ações superior -->
+        <div class="actions-bar">
+            <div class="date-info">
+                📅 {{ hoje.strftime('%d/%m/%Y') }}
+            </div>
+            <div class="bulk-actions">
+                <button onclick="marcarTodos('presente')" class="btn-bulk btn-bulk-presente">✓ Todos presentes</button>
+                <button onclick="marcarTodos('falta')" class="btn-bulk btn-bulk-falta">✗ Todos falta</button>
+                <a href="{{ url_for('presenca.relatorios') }}" class="btn btn-outline btn-sm">📊 Relatórios</a>
+            </div>
+        </div>
+        
+        <!-- Alerta de faltas consecutivas -->
+        {% set alunos_alerta = [] %}
+        {% for aluno in alunos %}
+            {% set faltas_cons = calcular_faltas_consecutivas(aluno.id) %}
+            {% if faltas_cons >= 3 %}
+                {% set _ = alunos_alerta.append({'nome': aluno.nome, 'faltas': faltas_cons}) %}
+            {% endif %}
+        {% endfor %}
+        
+        {% if alunos_alerta %}
+        <div class="alert-card">
+            <p>⚠️ <strong>Atenção:</strong> 
+                {% for aluno in alunos_alerta %}
+                    {{ aluno.nome }}{% if not loop.last %}, {% endif %}
+                {% endfor %} 
+                têm faltas consecutivas. Enviar notificação aos responsáveis?
+            </p>
+            <button class="btn-enviar" onclick="enviarNotificacao()">📧 Enviar</button>
+        </div>
+        {% endif %}
+        
+        <!-- Tabela de alunos -->
+        <div class="table-responsive">
+            <table class="alunos-table">
+                <thead>
+                    <tr>
+                        <th style="width: 40px;">#</th>
+                        <th>Aluno</th>
+                        <th style="width: 110px;">Status</th>
+                        <th style="width: 120px;">% Presença</th>
+                        <th style="width: 180px;">Ações Rápidas</th>
+                        <th style="width: 100px;">Gerenciar</th>
+                    </thead>
+                </thead>
+                <tbody>
+                    {% for aluno in alunos %}
+                    {% set presenca = presencas_hoje[aluno.id] %}
+                    {% set percentual, total_aulas, faltas_cons = calcular_estatisticas_aluno(aluno.id) %}
+                    <tr class="{% if faltas_cons >= 3 %}table-warning{% endif %}">
+                        <td style="width: 40px;">{{ loop.index }}</td>
+                        <td>
+                            <div class="aluno-info">
+                                <span class="aluno-nome">{{ aluno.nome }}</span>
+                                <span class="aluno-materia">Matrícula: {{ aluno.matricula }}</span>
+                            </div>
+                        </td>
+                        <td style="width: 110px;">
+                            {% if presenca %}
+                                {% if presenca.presente %}
+                                <span class="status-badge status-presente">✓ Presente</span>
+                                {% elif presenca.justificativa %}
+                                <span class="status-badge status-atestado">📄 Atestado</span>
+                                {% else %}
+                                <span class="status-badge status-falta">✗ Falta</span>
+                                {% endif %}
+                            {% else %}
+                            <span class="status-badge" style="background: #f5f5f5; color: #9e9e9e;">○ Pendente</span>
+                            {% endif %}
+                        </td>
+                        <td style="width: 120px;">
+                            <div class="porcentagem 
+                                {% if percentual >= 75 %}porcentagem-alta
+                                {% elif percentual >= 50 %}porcentagem-media
+                                {% else %}porcentagem-baixa{% endif %}">
+                                {{ "%.0f"|format(percentual) }}%
+                            </div>
+                            <div class="detalhe-presenca">
+                                ({{ total_aulas - faltas_cons }}/{{ total_aulas }} aulas)
+                                {% if faltas_cons >= 3 %}
+                                <div class="alerta-faltas">
+                                    ⚠️ {{ faltas_cons }} faltas consecutivas
+                                </div>
+                                {% endif %}
+                            </div>
+                        </td>
+                        <td style="width: 180px;">
+                            <div class="rapid-actions">
+                                <form action="{{ url_for('aluno.presenca_rapida', id=aluno.id, status='presente') }}" method="POST" style="display: inline;">
+                                    <input type="hidden" name="csrf_token" value="{{ csrf_token() }}">
+                                    <button type="submit" class="rapid-btn rapid-btn-presente" 
+                                            {% if presenca and presenca.presente %}disabled{% endif %}
+                                            title="Marcar presente">
+                                        ✓
+                                    </button>
+                                </form>
+                                <form action="{{ url_for('aluno.presenca_rapida', id=aluno.id, status='falta') }}" method="POST" style="display: inline;">
+                                    <input type="hidden" name="csrf_token" value="{{ csrf_token() }}">
+                                    <button type="submit" class="rapid-btn rapid-btn-falta"
+                                            {% if presenca and not presenca.presente and not presenca.justificativa %}disabled{% endif %}
+                                            title="Marcar falta">
+                                        ✗
+                                    </button>
+                                </form>
+                                <form action="{{ url_for('aluno.presenca_rapida', id=aluno.id, status='atestado') }}" method="POST" style="display: inline;">
+                                    <input type="hidden" name="csrf_token" value="{{ csrf_token() }}">
+                                    <button type="submit" class="rapid-btn rapid-btn-atestado"
+                                            {% if presenca and not presenca.presente and presenca.justificativa %}disabled{% endif %}
+                                            title="Falta com atestado">
+                                        📄
+                                    </button>
+                                </form>
+                                <a href="{{ url_for('presenca.relatorio_aluno', aluno_id=aluno.id) }}" 
+                                   class="btn-icon" title="Ver relatório">📊</a>
+                            </div>
+                        </td>
+                        <td style="width: 100px;">
+                            <div class="manage-actions" style="display: flex; gap: 0.3rem;">
+                                <a href="{{ url_for('aluno.editar_aluno', id=aluno.id) }}" 
+                                   class="btn-icon" title="Editar aluno">✏️</a>
+                                <form action="{{ url_for('aluno.excluir_aluno', id=aluno.id) }}" method="POST" style="display: inline;">
+                                    <input type="hidden" name="csrf_token" value="{{ csrf_token() }}">
+                                    <button type="submit" class="btn-icon" 
+                                            onclick="return confirm('Tem certeza que deseja excluir {{ aluno.nome }}?')"
+                                            title="Excluir aluno" style="color: #f44336;">🗑️</button>
+                                </form>
+                            </div>
+                        </td>
+                    </tr>
+                    {% endfor %}
+                </tbody>
+            </table>
+        </div>
+        
+        {% if not alunos %}
+        <div style="text-align: center; padding: 2rem;">
+            <p>Nenhum aluno cadastrado ainda.</p>
+            <a href="{{ url_for('aluno.cadastrar_aluno') }}" class="btn btn-primary">Cadastrar primeiro aluno</a>
+        </div>
+        {% endif %}
+        
+        <!-- Ações do rodapé -->
+        <div class="footer-actions">
+            <div class="manage-buttons">
+                <a href="{{ url_for('aluno.cadastrar_aluno') }}" class="btn-manage btn-manage-primary">
+                    ➕ Novo Aluno
+                </a>
+            </div>
+            <button onclick="salvarRegistro()" class="save-btn">
+                💾 Salvar registro do dia ({{ hoje.strftime('%d/%m/%Y') }})
+            </button>
+        </div>
+    </div>
+</div>
+
+<script>
+    function marcarTodos(status) {
+        let count = 0;
+        const forms = document.querySelectorAll('.rapid-actions form');
+        forms.forEach(form => {
+            const action = form.action;
+            if ((status === 'presente' && action.includes('presente')) ||
+                (status === 'falta' && action.includes('falta'))) {
+                const submitBtn = form.querySelector('button');
+                if (!submitBtn.disabled) {
+                    form.submit();
+                    count++;
+                }
+            }
+        });
+        if (count > 0) {
+            setTimeout(() => location.reload(), 500);
+        }
+    }
+    
+    function salvarRegistro() {
+        location.reload();
+    }
+    
+    function enviarNotificacao() {
+        alert("📧 Notificação enviada aos responsáveis!\n\nAs famílias serão informadas sobre as faltas consecutivas.");
+    }
+</script>
+{% endblock %}

@@ -1,0 +1,95 @@
+<!DOCTYPE html>
+<html lang="pt-br">
+<head>
+    <meta charset="UTF-8">
+    <meta name="viewport" content="width=device-width, initial-scale=1.0">
+    <title>Espaço Saber - {% block title %}Sistema de Presença{% endblock %}</title>
+    
+    <!-- Fontes e Ícones -->
+    <link href="https://fonts.googleapis.com/css2?family=Inter:wght@300;400;500;600;700;800&display=swap" rel="stylesheet">
+    
+    <!-- CSS Principal -->
+    <link rel="stylesheet" href="{{ url_for('static', filename='css/style.css') }}">
+    
+    <!-- CSRF Token -->
+    <meta name="csrf-token" content="{{ csrf_token() if csrf_token else '' }}">
+    
+    {% block head %}{% endblock %}
+</head>
+<body>
+    {% if current_user.is_authenticated %}
+    <!-- Navbar apenas para usuários logados -->
+    <nav class="navbar">
+        <div class="container">
+            <div class="nav-brand">
+                <a href="{{ url_for('aluno.listar_alunos') }}">
+                     Espaço Saber
+                </a>
+            </div>
+            
+            <div class="nav-menu">
+		<a href="{{ url_for('presenca.calendario') }}">
+    		    📅 Calendário
+		</a>
+                <a href="{{ url_for('aluno.listar_alunos') }}">
+                    📋 Alunos
+                </a>
+                <a href="{{ url_for('presenca.visualizar_presencas') }}">
+                    📊 Relatórios
+                </a>
+                <span class="user-info">
+                     {{ current_user.nome }}
+                </span>
+                <a href="{{ url_for('auth.logout') }}" class="btn-logout">
+                    🚪 Sair
+                </a>
+            </div>
+        </div>
+    </nav>
+    {% endif %}
+    
+    <!-- Conteúdo Principal -->
+    <main>
+        {% if current_user.is_authenticated %}
+        <div class="container">
+        {% endif %}
+        
+        <!-- Mensagens Flash -->
+        {% with messages = get_flashed_messages(with_categories=true) %}
+            {% if messages %}
+                {% for category, message in messages %}
+                    <div class="alert alert-{{ category }}">
+                        {% if category == 'success' %}✅
+                        {% elif category == 'danger' %}❌
+                        {% elif category == 'warning' %}⚠️
+                        {% elif category == 'info' %}ℹ️
+                        {% endif %}
+                        {{ message }}
+                    </div>
+                {% endfor %}
+            {% endif %}
+        {% endwith %}
+        
+        <!-- Conteúdo específico -->
+        {% block content %}{% endblock %}
+        
+        {% if current_user.is_authenticated %}
+        </div>
+        {% endif %}
+    </main>
+    
+    {% if current_user.is_authenticated %}
+    <footer>
+        <div class="container">
+            <p>© 2024 Espaço Saber - Sistema de Controle de Presença</p>
+            <p style="font-size: 0.75rem; margin-top: 0.5rem;">
+                🌱 Transformando educação com tecnologia
+            </p>
+        </div>
+    </footer>
+    {% endif %}
+    
+    <script src="{{ url_for('static', filename='js/main.js') }}"></script>
+    {% block scripts %}{% endblock %}
+</body>
+</html>

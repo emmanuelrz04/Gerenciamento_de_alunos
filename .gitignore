@@ -1,0 +1,40 @@
+# Ambiente virtual
+venv/
+env/
+ENV/
+.venv/
+
+# Python
+__pycache__/
+*.py[cod]
+*$py.class
+*.so
+.Python
+*.egg-info/
+dist/
+build/
+
+# Banco de dados
+instance/app.db
+*.db
+*.sqlite
+*.sqlite3
+
+# IDE
+.vscode/
+.idea/
+*.swp
+*.swo
+*~
+.DS_Store
+
+# Logs
+*.log
+
+# Variáveis de ambiente
+.env
+.flaskenv
+
+# Migrations
+migrations/versions/*.py
+!migrations/versions/__init__.py

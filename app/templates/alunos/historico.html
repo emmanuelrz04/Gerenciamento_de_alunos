@@ -1,0 +1,84 @@
+{% extends "base.html" %}
+
+{% block title %}Histórico - {{ aluno.nome }}{% endblock %}
+
+{% block content %}
+<div class="card">
+    <div class="card-header">
+        <div>
+            <h2>📊 Histórico de Presenças</h2>
+            <p style="margin: 0.5rem 0 0 0; color: rgba(255,255,255,0.9);">
+                {{ aluno.nome }} ({{ aluno.matricula }})
+            </p>
+        </div>
+        <a href="{{ url_for('aluno.listar_alunos') }}" class="btn btn-secondary">← Voltar</a>
+    </div>
+    <div class="card-body">
+        <!-- Estatísticas -->
+        <div class="stats">
+            <h4>📈 Estatísticas Gerais</h4>
+            <div style="display: grid; grid-template-columns: repeat(auto-fit, minmax(200px, 1fr)); gap: 1rem;">
+                <div>
+                    <strong>📚 Total de Aulas:</strong>
+                    <span style="font-size: 1.5rem; display: block; color: var(--gold);">{{ total_aulas }}</span>
+                </div>
+                <div>
+                    <strong>✅ Presenças:</strong>
+                    <span style="font-size: 1.5rem; display: block; color: var(--success);">{{ presencas_count }}</span>
+                </div>
+                <div>
+                    <strong>❌ Faltas:</strong>
+                    <span style="font-size: 1.5rem; display: block; color: var(--danger);">{{ faltas_count }}</span>
+                </div>
+                <div>
+                    <strong>📄 Faltas Justificadas:</strong>
+                    <span style="font-size: 1.5rem; display: block; color: var(--warning);">{{ faltas_justificadas }}</span>
+                </div>
+                <div>
+                    <strong>🎯 Percentual de Presença:</strong>
+                    <span style="font-size: 1.5rem; display: block; color: var(--gold);">
+                        {{ "%.1f"|format(percentual) }}%
+                    </span>
+                </div>
+            </div>
+        </div>
+        
+        {% if presencas %}
+        <div class="table-responsive">
+            <table class="table">
+                <thead>
+                    <tr>
+                        <th>Data</th>
+                        <th>Status</th>
+                        <th>Justificativa</th>
+                        <th>Registrado em</th>
+                    </tr>
+                </thead>
+                <tbody>
+                    {% for presenca in presencas %}
+                    <tr class="{% if presenca.presente %}table-success{% elif presenca.justificativa %}table-warning{% else %}table-danger{% endif %}">
+                        <td><strong>{{ presenca.data.strftime('%d/%m/%Y') }}</strong></td>
+                        <td>
+                            {% if presenca.presente %}
+                            <span class="badge badge-success">✓ Presente</span>
+                            {% elif presenca.justificativa %}
+                            <span class="badge badge-warning">📄 Falta Justificada</span>
+                            {% else %}
+                            <span class="badge badge-danger">✗ Falta</span>
+                            {% endif %}
+                        </td>
+                        <td>{{ presenca.justificativa or '-' }}</td>
+                        <td><small>{{ presenca.data_registro.strftime('%d/%m/%Y %H:%M') }}</small></td>
+                    </tr>
+                    {% endfor %}
+                </tbody>
+            </table>
+        </div>
+        {% else %}
+        <div class="alert alert-info">
+            <p>ℹ️ Nenhum registro de presença encontrado para este aluno.</p>
+        </div>
+        {% endif %}
+    </div>
+</div>
+{% endblock %}

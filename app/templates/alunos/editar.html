@@ -1,0 +1,91 @@
+{% extends "base.html" %}
+
+{% block title %}Editar Aluno - Espaço Saber{% endblock %}
+
+{% block content %}
+<div class="row justify-content-center">
+    <div class="col-md-8">
+        <div class="card">
+            <div class="card-header">
+                <h2>✏️ Editar Aluno</h2>
+                <p>Atualize os dados do aluno</p>
+            </div>
+            <div class="card-body">
+                <form method="POST" action="{{ url_for('aluno.editar_aluno', id=aluno.id) }}">
+                    <input type="hidden" name="csrf_token" value="{{ csrf_token() }}">
+                    
+                    <div class="form-group">
+                        <label for="nome">👤 Nome Completo *</label>
+                        <input type="text" class="form-control" id="nome" name="nome" 
+                               value="{{ aluno.nome }}" required autofocus>
+                    </div>
+                    
+                    <div class="form-group">
+                        <label for="email">📧 E-mail *</label>
+                        <input type="email" class="form-control" id="email" name="email" 
+                               value="{{ aluno.email }}" required>
+                    </div>
+                    
+                    <div class="form-group">
+                        <label for="matricula">🎓 Matrícula *</label>
+                        <input type="text" class="form-control" id="matricula" name="matricula" 
+                               value="{{ aluno.matricula }}" required>
+                    </div>
+                    
+                    <div class="form-group">
+                        <label for="nova_senha">🔒 Nova Senha (opcional)</label>
+                        <input type="password" class="form-control" id="nova_senha" name="nova_senha" 
+                               placeholder="Deixe em branco para manter a senha atual">
+                        <small class="form-text text-muted">Mínimo de 6 caracteres para segurança</small>
+                    </div>
+                    
+                    <div class="btn-group" style="margin-top: 1rem;">
+                        <button type="submit" class="btn btn-primary">💾 Salvar Alterações</button>
+                        <a href="{{ url_for('aluno.listar_alunos') }}" class="btn btn-secondary">❌ Cancelar</a>
+                    </div>
+                </form>
+            </div>
+        </div>
+    </div>
+</div>
+
+<style>
+    .col-md-8 {
+        margin: 0 auto;
+    }
+    
+    .form-group {
+        margin-bottom: 1.5rem;
+    }
+    
+    .form-control {
+        width: 100%;
+        padding: 0.75rem 1rem;
+        border: 2px solid var(--gray-200);
+        border-radius: var(--radius-md);
+        transition: all 0.3s ease;
+    }
+    
+    .form-control:focus {
+        border-color: var(--gold);
+        outline: none;
+        box-shadow: 0 0 0 3px rgba(212, 175, 55, 0.1);
+    }
+    
+    .btn-group {
+        display: flex;
+        gap: 1rem;
+        margin-top: 1rem;
+    }
+    
+    @media (max-width: 768px) {
+        .btn-group {
+            flex-direction: column;
+        }
+        
+        .btn-group .btn {
+            width: 100%;
+        }
+    }
+</style>
+{% endblock %}

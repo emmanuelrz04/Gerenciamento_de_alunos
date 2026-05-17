@@ -1,0 +1,122 @@
+{% extends "base.html" %}
+
+{% block title %}Espaço Saber - Sistema Elite de Presença{% endblock %}
+
+{% block content %}
+<!-- Hero Section -->
+<div class="hero-section" style="text-align: center; margin-bottom: 3rem;">
+    <div class="card" style="background: linear-gradient(135deg, var(--primary) 0%, var(--primary-dark) 100%); color: white;">
+        <div class="card-body" style="padding: 3rem;">
+            <h1 style="color: var(--gold); font-size: 3rem; margin-bottom: 0.5rem;">
+                Espaço Saber
+            </h1>
+            <p style="font-size: 1.2rem; opacity: 0.9; margin-bottom: 1rem;">
+                Sistema de Controle de Presença de Alta Performance
+            </p>
+            {% if not current_user.is_authenticated %}
+            <div class="btn-group" style="justify-content: center; margin-top: 1.5rem;">
+                <a href="{{ url_for('auth.login') }}" class="btn btn-primary" style="background: var(--gold); color: var(--primary);">
+                     Acessar Sistema
+                </a>
+            </div>
+            {% endif %}
+        </div>
+    </div>
+</div>
+
+{% if not current_user.is_authenticated %}
+<!-- Features Grid -->
+<div style="display: grid; grid-template-columns: repeat(auto-fit, minmax(300px, 1fr)); gap: 2rem; margin-bottom: 3rem;">
+    <div class="card" style="text-align: center;">
+        <div style="font-size: 3rem; margin: 1.5rem 0 0;"></div>
+        <div class="card-body">
+            <h3 style="color: var(--gold);">Gestão de Alunos</h3>
+            <p style="color: var(--gray-600);">Cadastre, edite e organize todos os alunos matriculados com facilidade.</p>
+        </div>
+    </div>
+    
+    <div class="card" style="text-align: center;">
+        <div style="font-size: 3rem; margin: 1.5rem 0 0;"></div>
+        <div class="card-body">
+            <h3 style="color: var(--gold);">Controle de Presença</h3>
+            <p style="color: var(--gray-600);">Registre presenças, faltas e faltas justificadas com apenas um clique.</p>
+        </div>
+    </div>
+    
+    <div class="card" style="text-align: center;">
+        <div style="font-size: 3rem; margin: 1.5rem 0 0;"></div>
+        <div class="card-body">
+            <h3 style="color: var(--gold);">Relatórios Premium</h3>
+            <p style="color: var(--gray-600);">Visualize estatísticas detalhadas e histórico completo de frequência.</p>
+        </div>
+    </div>
+</div>
+
+<!-- Credenciais de Acesso -->
+<div class="card" style="background: linear-gradient(135deg, var(--gray-50) 0%, var(--white) 100%);">
+    <div class="card-header">
+        <h2> Credenciais de Acesso</h2>
+    </div>
+    <div class="card-body">
+        <div style="display: grid; grid-template-columns: repeat(auto-fit, minmax(250px, 1fr)); gap: 1.5rem;">
+            <div style="text-align: center; padding: 1rem;">
+                <div style="font-size: 2rem;"></div>
+                <p><strong>Matrícula:</strong> <span class="badge badge-gold">PROF001</span></p>
+                <p><strong>Senha:</strong> <span class="badge badge-gold">admin123</span></p>
+            </div>
+            <div style="text-align: center; padding: 1rem;">
+                <div style="font-size: 2rem;"></div>
+                <p style="color: var(--gold); font-weight: 600;">Sistema Exclusivo para Professores</p>
+                <p style="font-size: 0.85rem;">Acesso seguro e personalizado</p>
+            </div>
+        </div>
+    </div>
+</div>
+{% else %}
+<!-- Dashboard do Professor -->
+<div class="card">
+    <div class="card-header">
+        <h2> Painel do Professor</h2>
+        <span class="badge badge-gold">{{ hoje.strftime('%A, %d de %B de %Y') }}</span>
+    </div>
+    <div class="card-body">
+        <div class="info-box">
+            <p style="font-size: 1.2rem; margin-bottom: 0;">
+                <strong>Bem-vindo, {{ current_user.nome }}!</strong>
+            </p>
+            <p style="margin-top: 0.5rem;">Hoje é um ótimo dia para registrar a presença dos alunos.</p>
+        </div>
+        
+        <div style="display: grid; grid-template-columns: repeat(auto-fit, minmax(280px, 1fr)); gap: 1.5rem; margin-top: 1rem;">
+            <a href="{{ url_for('aluno.listar_alunos') }}" style="text-decoration: none;">
+                <div class="card" style="margin: 0; cursor: pointer; transition: all 0.3s;">
+                    <div style="text-align: center; padding: 1.5rem;">
+                        <div style="font-size: 3rem;"></div>
+                        <h3 style="margin: 1rem 0 0.5rem;">Lista de Alunos</h3>
+                        <p style="color: var(--gray-600);">Gerencie todos os alunos cadastrados</p>
+                        <span class="badge badge-gold">Acessar →</span>
+                    </div>
+                </div>
+            </a>
+            
+            <a href="{{ url_for('presenca.visualizar_presencas') }}" style="text-decoration: none;">
+                <div class="card" style="margin: 0; cursor: pointer; transition: all 0.3s;">
+                    <div style="text-align: center; padding: 1.5rem;">
+                        <div style="font-size: 3rem;"></div>
+                        <h3 style="margin: 1rem 0 0.5rem;">Relatórios</h3>
+                        <p style="color: var(--gray-600);">Visualize estatísticas de presença</p>
+                        <span class="badge badge-gold">Acessar →</span>
+                    </div>
+                </div>
+            </a>
+        </div>
+        
+        <div style="margin-top: 2rem; padding: 1rem; background: var(--gray-50); border-radius: var(--radius-lg); text-align: center;">
+            <p style="margin: 0; color: var(--gray-600);">
+                 <strong>Dica Elite:</strong> Na lista de alunos, use os botões rápidos para registrar presença em segundos!
+            </p>
+        </div>
+    </div>
+</div>
+{% endif %}
+{% endblock %}

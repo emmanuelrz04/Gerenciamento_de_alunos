@@ -1,0 +1,83 @@
+{% extends "base.html" %}
+
+{% block title %}Presenças - Espaço Saber{% endblock %}
+
+{% block content %}
+<div class="card">
+    <div class="section-header">
+        <h2>📋 Controle de Presença</h2>
+        <div class="date-picker">
+            <form method="GET" action="{{ url_for('presenca.visualizar_presencas') }}" style="display: flex; gap: 0.5rem; align-items: center;">
+                <input type="date" name="data" value="{{ data.strftime('%Y-%m-%d') }}" onchange="this.form.submit()">
+                <a href="{{ url_for('presenca.relatorios') }}" class="btn btn-outline btn-sm">Relatórios</a>
+            </form>
+        </div>
+    </div>
+    
+    <!-- Cards de métricas -->
+    <div class="metrics-grid">
+        <div class="metric-card metric-total">
+            <div class="metric-value">{{ total_alunos }}</div>
+            <div class="metric-label">Total Alunos</div>
+        </div>
+        <div class="metric-card metric-presentes">
+            <div class="metric-value">{{ presentes }}</div>
+            <div class="metric-label">Presentes</div>
+        </div>
+        <div class="metric-card metric-faltas">
+            <div class="metric-value">{{ faltas }}</div>
+            <div class="metric-label">Faltas</div>
+        </div>
+        <div class="metric-card metric-justificadas">
+            <div class="metric-value">{{ faltas_justificadas }}</div>
+            <div class="metric-label">Justificadas</div>
+        </div>
+    </div>
+    
+    <!-- Tabela compacta -->
+    <div class="table-responsive">
+        <table class="table-compact">
+            <thead>
+                <tr>
+                    <th>MATRÍCULA</th>
+                    <th>ALUNO</th>
+                    <th>STATUS</th>
+                    <th style="text-align: center;">AÇÃO</th>
+                </thead>
+            </thead>
+            <tbody>
+                {% for aluno in alunos %}
+                {% set presenca = presencas[aluno.id] %}
+                <tr>
+                    <td><strong>{{ aluno.matricula }}</strong></td>
+                    <td>{{ aluno.nome }}</td>
+                    <td>
+                        {% if presenca %}
+                            {% if presenca.presente %}
+                            <span class="status-badge-sm status-presente">✓ Presente</span>
+                            {% elif presenca.justificativa %}
+                            <span class="status-badge-sm status-justificada" title="{{ presenca.justificativa }}">📄 Justificada</span>
+                            {% else %}
+                            <span class="status-badge-sm status-falta">✗ Falta</span>
+                            {% endif %}
+                        {% else %}
+                        <span class="status-badge-sm status-nao-registrado">○ Pendente</span>
+                        {% endif %}
+                    </td>
+                    <td style="text-align: center;">
+                        <a href="{{ url_for('presenca.relatorio_aluno', aluno_id=aluno.id) }}" 
+                           class="btn-icon" title="Ver histórico">📊</a>
+                    </td>
+                </tr>
+                {% endfor %}
+            </tbody>
+        </table>
+    </div>
+    
+    <!-- Ações rápidas -->
+    <div style="margin-top: 1.5rem; display: flex; gap: 0.75rem; justify-content: flex-end; border-top: 1px solid var(--gray-200); padding-top: 1rem;">
+        <a href="{{ url_for('aluno.listar_alunos') }}" class="btn btn-outline btn-sm">← Voltar</a>
+        <a href="{{ url_for('presenca.visualizar_presencas') }}" class="btn btn-primary btn-sm">🔄 Atualizar</a>
+    </div>
+</div>
+{% endblock %}

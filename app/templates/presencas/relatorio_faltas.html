@@ -1,0 +1,265 @@
+<!DOCTYPE html>
+<html lang="pt-br">
+<head>
+    <meta charset="UTF-8">
+    <title>Relatório de Faltas - Espaço Saber</title>
+    <style>
+        * {
+            margin: 0;
+            padding: 0;
+            box-sizing: border-box;
+        }
+        body {
+            font-family: 'Segoe UI', 'Arial', sans-serif;
+            font-size: 11pt;
+            line-height: 1.4;
+            color: #2D2A24;
+            background: white;
+            margin: 1.5cm;
+        }
+        
+        /* Botão de imprimir */
+        .print-btn {
+            text-align: right;
+            margin-bottom: 20px;
+        }
+        .print-btn button {
+            padding: 8px 16px;
+            background: #0B3B2F;
+            color: white;
+            border: none;
+            border-radius: 6px;
+            cursor: pointer;
+            font-size: 14px;
+        }
+        .print-btn button:hover {
+            background: #1A5D4A;
+        }
+        
+        /* Cabeçalho */
+        .header {
+            text-align: center;
+            margin-bottom: 20px;
+            border-bottom: 2px solid #0B3B2F;
+            padding-bottom: 10px;
+        }
+        .header h1 {
+            color: #0B3B2F;
+            font-size: 18pt;
+            margin-bottom: 4px;
+        }
+        .header p {
+            color: #6B6356;
+            font-size: 10pt;
+        }
+        
+        /* Período */
+        .periodo {
+            background: #F5F5F5;
+            padding: 8px 12px;
+            border-radius: 6px;
+            margin-bottom: 20px;
+            text-align: right;
+        }
+        
+        /* Cards de resumo */
+        .resumo-geral {
+            background: #E8F5E9;
+            padding: 15px;
+            border-left: 4px solid #4caf50;
+            margin-bottom: 25px;
+            display: flex;
+            justify-content: space-around;
+            flex-wrap: wrap;
+            gap: 15px;
+        }
+        .card-resumo {
+            text-align: center;
+        }
+        .card-resumo .numero {
+            font-size: 22pt;
+            font-weight: bold;
+            color: #0B3B2F;
+        }
+        
+        /* Seção de cada aluno */
+        .aluno-section {
+            margin-bottom: 35px;
+            page-break-inside: avoid;
+        }
+        .aluno-header {
+            background: #0B3B2F;
+            color: white;
+            padding: 10px 15px;
+            border-radius: 6px 6px 0 0;
+            display: flex;
+            justify-content: space-between;
+            flex-wrap: wrap;
+        }
+        .stats-container {
+            display: flex;
+            gap: 15px;
+            background: #F9F9F9;
+            padding: 12px 15px;
+            border: 1px solid #E0E0E0;
+            border-top: none;
+        }
+        .stat-box {
+            flex: 1;
+            text-align: center;
+        }
+        .stat-value {
+            font-size: 16pt;
+            font-weight: bold;
+            display: block;
+        }
+        .falta { color: #c62828; }
+        .justificada { color: #ef6c00; }
+        
+        /* Tabelas */
+        table {
+            width: 100%;
+            border-collapse: collapse;
+            margin-top: 10px;
+        }
+        th, td {
+            border: 1px solid #D0D0D0;
+            padding: 8px 10px;
+            text-align: left;
+            font-size: 10pt;
+        }
+        th {
+            background: #EDEDED;
+            font-weight: bold;
+        }
+        
+        /* Rodapé */
+        .footer {
+            text-align: center;
+            font-size: 9pt;
+            color: #999;
+            margin-top: 30px;
+            border-top: 1px solid #CCC;
+            padding-top: 10px;
+        }
+        
+        /* Impressão */
+        @media print {
+            body {
+                margin: 0;
+            }
+            .print-btn {
+                display: none;
+            }
+            .aluno-section {
+                page-break-inside: avoid;
+            }
+        }
+    </style>
+</head>
+<body>
+    <!-- Botão para salvar como PDF -->
+    <div class="print-btn">
+        <button onclick="window.print()">🖨️ Salvar como PDF (Ctrl+P)</button>
+    </div>
+
+    <div class="header">
+        <h1>📋 Espaço Saber - Relatório de Faltas</h1>
+        <p>Relatório detalhado de faltas por aluno</p>
+    </div>
+    
+    <div class="periodo">
+        Gerado em: {{ hoje.strftime('%d/%m/%Y %H:%M') }}
+    </div>
+
+    <div class="resumo-geral">
+        <div class="card-resumo">
+            <div class="numero">{{ total_alunos }}</div>
+            <div>Total de alunos</div>
+        </div>
+        <div class="card-resumo">
+            <div class="numero">{{ total_faltas_geral }}</div>
+            <div>Total de faltas</div>
+        </div>
+        <div class="card-resumo">
+            <div class="numero">{{ total_justificadas_geral }}</div>
+            <div>Faltas justificadas</div>
+        </div>
+        <div class="card-resumo">
+            <div class="numero">{{ "%.1f"|format(media_faltas_geral) }}%</div>
+            <div>Média de faltas</div>
+        </div>
+    </div>
+
+    {% for aluno in alunos %}
+    <div class="aluno-section">
+        <div class="aluno-header">
+            <span><strong>{{ aluno.nome }}</strong> (Matrícula: {{ aluno.matricula }})</span>
+            <span>{{ aluno.email }}</span>
+        </div>
+        <div class="stats-container">
+            <div class="stat-box">
+                <span class="stat-value">{{ aluno.total_aulas }}</span>
+                Total aulas
+            </div>
+            <div class="stat-box">
+                <span class="stat-value falta">{{ aluno.faltas }}</span>
+                Faltas
+            </div>
+            <div class="stat-box">
+                <span class="stat-value justificada">{{ aluno.faltas_justificadas }}</span>
+                Justificadas
+            </div>
+            <div class="stat-box">
+                <span class="stat-value">{{ "%.1f"|format(aluno.percentual_falta) }}%</span>
+                % Faltas
+            </div>
+        </div>
+
+        <h4 style="margin: 12px 0 6px 0;">📅 Dias de falta não justificada</h4>
+        <table>
+            <thead>
+                <tr><th>Data</th><th>Justificativa</th></tr>
+            </thead>
+            <tbody>
+                {% for falta in aluno.lista_faltas %}
+                <tr>
+                    <td>{{ falta.data.strftime('%d/%m/%Y') }}</td>
+                    <td>{{ falta.justificativa or '---' }}</td>
+                </tr>
+                {% else %}
+                <tr><td colspan="2" style="text-align: center;">Nenhuma falta não justificada.</td></tr>
+                {% endfor %}
+            </tbody>
+        </table>
+
+        {% if aluno.lista_justificadas %}
+        <h4 style="margin: 12px 0 6px 0;">📄 Faltas justificadas</h4>
+        <table>
+            <thead><tr><th>Data</th><th>Justificativa</th></tr></thead>
+            <tbody>
+                {% for falta in aluno.lista_justificadas %}
+                <tr>
+                    <td>{{ falta.data.strftime('%d/%m/%Y') }}</td>
+                    <td>{{ falta.justificativa }}</td>
+                </tr>
+                {% endfor %}
+            </tbody>
+        </table>
+        {% endif %}
+    </div>
+    {% endfor %}
+
+    <div class="footer">
+        Sistema de Controle de Presença - Espaço Saber<br>
+        Documento gerado automaticamente.
+    </div>
+
+    <script>
+        // Fecha a janela de impressão automaticamente após salvar (opcional)
+        window.onbeforeprint = function() {
+            // Não faz nada, deixa o usuário decidir
+        };
+    </script>
+</body>
+</html>

@@ -1,0 +1,42 @@
+{% extends "base.html" %}
+
+{% block title %}Relatórios - Espaço Saber{% endblock %}
+
+{% block content %}
+<div class="card">
+    <div class="section-header">
+        <h2>📊 Relatório por Aluno</h2>
+        <a href="{{ url_for('presenca.visualizar_presencas') }}" class="btn btn-outline btn-sm">← Voltar</a>
+    </div>
+    
+    <div class="table-responsive">
+        <table class="table-compact">
+            <thead>
+                <tr>
+                    <th>MATRÍCULA</th>
+                    <th>ALUNO</th>
+                    <th style="text-align: center;">AÇÃO</th>
+                </thead>
+            </thead>
+            <tbody>
+                {% for aluno in alunos %}
+                <tr>
+                    <td><strong>{{ aluno.matricula }}</strong></td>
+                    <td>{{ aluno.nome }}</td>
+                    <td style="text-align: center;">
+                        <a href="{{ url_for('presenca.relatorio_aluno', aluno_id=aluno.id) }}" 
+                           class="btn btn-primary btn-sm">Ver Detalhes</a>
+                    </td>
+                </tr>
+                {% else %}
+                <tr>
+                    <td colspan="3" style="text-align: center; padding: 2rem; color: var(--gray-500);">
+                        Nenhum aluno cadastrado
+                    </td>
+                </tr>
+                {% endfor %}
+            </tbody>
+        </table>
+    </div>
+</div>
+{% endblock %}
