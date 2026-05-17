@@ -22,7 +22,6 @@ Sistema web que reduz o tempo de registro de presença para menos de 2 minutos d
 - Bootstrap 5
 - Chart.js
 - Bcrypt
-
 ---
 
 ## Principais Funcionalidades
@@ -81,6 +80,27 @@ Usuário requisita página → Controller processa → Service aplica regras →
 -  Interface intuitiva projetada para uso diário
 -  Relatórios profissionais gerados em segundos
 
+---
+# Screenshots
+
+## Interface do Sistema
+
+Abaixo estão as principais telas e funcionalidades do sistema:
+
+### 1. Tela de Login
+Acesso seguro com matrícula e senha.
+
+![Tela de Login](https://github.com/emmanuelrz04/Gerenciamento_de_alunos/blob/main/Screenshots/SC1.png?raw=true)
+
+### 2. Lista de Alunos (Demais imagens)
+*As próximas imagens seguem o mesmo padrão de nomenclatura dentro da pasta `Screenshots`.*
+
+- Registro de presença (Presente, Falta, Atestado)
+- Relatório individual com gráfico
+- Calendário de presenças
+- Relatório de faltas para impressão
+
+![Tela de Login](https://github.com/emmanuelrz04/Gerenciamento_de_alunos/blob/main/Screenshots/SC2.png?raw=true)
 ---
 
 ## Como Executar o Projeto
