@@ -4,19 +4,15 @@ from app import db
 from app.models import Aluno, Presenca
 from datetime import date, datetime
 
-# Cria um blueprint para rotas de alunos
 bp = Blueprint('aluno', __name__, url_prefix='/alunos')
 
 def calcular_estatisticas_aluno(aluno_id):
     """Calcula percentual de presença e faltas consecutivas"""
-    from app.models import Presenca
-    
     presencas = Presenca.query.filter_by(aluno_id=aluno_id).order_by(Presenca.data.desc()).all()
     total = len(presencas)
     presentes = sum(1 for p in presencas if p.presente)
     percentual = (presentes / total * 100) if total > 0 else 0
     
-    # Calcular faltas consecutivas (das mais recentes para as mais antigas)
     faltas_consecutivas = 0
     for p in presencas:
         if not p.presente and not p.justificativa:
@@ -28,41 +24,6 @@ def calcular_estatisticas_aluno(aluno_id):
 
 def calcular_faltas_consecutivas(aluno_id):
     """Calcula apenas faltas consecutivas"""
-    from app.models import Presenca
-    
-    presencas = Presenca.query.filter_by(aluno_id=aluno_id).order_by(Presenca.data.desc()).all()
-    faltas = 0
-    for p in presencas:
-        if not p.presente and not p.justificativa:
-            faltas += 1
-        else:
-            break
-    return faltas
-
-def calcular_estatisticas_aluno(aluno_id):
-    """Calcula percentual de presença e faltas consecutivas"""
-    from app.models import Presenca
-    from datetime import date, timedelta
-    
-    presencas = Presenca.query.filter_by(aluno_id=aluno_id).order_by(Presenca.data.desc()).all()
-    total = len(presencas)
-    presentes = sum(1 for p in presencas if p.presente)
-    percentual = (presentes / total * 100) if total > 0 else 0
-    
-    # Calcular faltas consecutivas
-    faltas_consecutivas = 0
-    for p in presencas:
-        if not p.presente and not p.justificativa:
-            faltas_consecutivas += 1
-        else:
-            break
-    
-    return percentual, total, faltas_consecutivas
-
-def calcular_faltas_consecutivas(aluno_id):
-    """Calcula apenas faltas consecutivas"""
-    from app.models import Presenca
-    
     presencas = Presenca.query.filter_by(aluno_id=aluno_id).order_by(Presenca.data.desc()).all()
     faltas = 0
     for p in presencas:
@@ -76,18 +37,13 @@ def calcular_faltas_consecutivas(aluno_id):
 @login_required
 def listar_alunos():
     """Lista todos os alunos (exceto administradores)"""
-    # Mostra apenas alunos com tipo 'aluno' (não admin)
     alunos = Aluno.query.filter_by(tipo='aluno').order_by(Aluno.nome).all()
     hoje = date.today()
     
-    # Busca presenças de hoje para cada aluno
     presencas_hoje = {}
     for aluno in alunos:
         presenca = Presenca.query.filter_by(aluno_id=aluno.id, data=hoje).first()
-        if presenca:
-            presencas_hoje[aluno.id] = presenca
-        else:
-            presencas_hoje[aluno.id] = None
+        presencas_hoje[aluno.id] = presenca if presenca else None
     
     return render_template('alunos/listar.html', 
                          alunos=alunos, 
@@ -101,11 +57,8 @@ def presenca_rapida(id, status):
     
     aluno = Aluno.query.get_or_404(id)
     hoje = date.today()
-    
-    # Busca se já existe registro para hoje
     registro = Presenca.query.filter_by(aluno_id=id, data=hoje).first()
     
-    # Define o status baseado no parâmetro
     if status == 'presente':
         presente = True
         justificativa = None
@@ -123,12 +76,10 @@ def presenca_rapida(id, status):
         return redirect(url_for('aluno.listar_alunos'))
     
     if registro:
-        # Atualiza registro existente
         registro.presente = presente
         registro.justificativa = justificativa
         flash(f'{mensagem} (registro atualizado)', 'success')
     else:
-        # Cria novo registro
         novo_registro = Presenca(
             aluno_id=id,
             data=hoje,
@@ -149,42 +100,50 @@ def presenca_rapida(id, status):
 @bp.route('/novo', methods=['GET', 'POST'])
 @login_required
 def cadastrar_aluno():
-    """Cadastra um novo aluno"""
+    """Cadastra um novo aluno - apenas nome é necessário. Email e senha são gerados automaticamente."""
+    
+    def gerar_matricula():
+        from datetime import datetime
+        ano = datetime.now().year
+        ultimo_aluno = Aluno.query.order_by(Aluno.id.desc()).first()
+        if ultimo_aluno and ultimo_aluno.matricula:
+            try:
+                sequencial = int(ultimo_aluno.matricula[-4:]) + 1
+            except (ValueError, IndexError):
+                sequencial = 1
+        else:
+            sequencial = 1
+        return f"{ano}{sequencial:04d}"
     
     if request.method == 'POST':
-        # Obtém dados do formulário
         nome = request.form.get('nome')
-        email = request.form.get('email')
-        matricula = request.form.get('matricula')
-        senha = request.form.get('senha')
         
-        # Validações
-        if not all([nome, email, matricula, senha]):
-            flash('Todos os campos são obrigatórios.', 'danger')
+        if not nome:
+            flash('Nome é obrigatório.', 'danger')
             return render_template('alunos/cadastrar.html')
         
-        # Verifica se matrícula já existe
+        # Gera tudo automaticamente
+        matricula = gerar_matricula()
+        email = f"{nome.lower().replace(' ', '')}@aluno.com"
+        senha = "123456"
+        
+        # Verifica se matrícula já existe (segurança)
         if Aluno.query.filter_by(matricula=matricula).first():
-            flash('Matrícula já cadastrada.', 'danger')
+            flash('Erro ao gerar matrícula. Tente novamente.', 'danger')
             return render_template('alunos/cadastrar.html')
         
-        # Verifica se email já existe
-        if Aluno.query.filter_by(email=email).first():
-            flash('E-mail já cadastrado.', 'danger')
-            return render_template('alunos/cadastrar.html')
-        
-        # Cria novo aluno
         novo_aluno = Aluno(
             nome=nome,
             email=email,
             matricula=matricula,
             senha=senha
         )
+        novo_aluno.tipo = 'aluno'
         
         try:
             db.session.add(novo_aluno)
             db.session.commit()
-            flash(f'Aluno {nome} cadastrado com sucesso!', 'success')
+            flash(f'Aluno {nome} cadastrado com sucesso! Matrícula: {matricula}', 'success')
             return redirect(url_for('aluno.listar_alunos'))
         except Exception as e:
             db.session.rollback()
@@ -200,34 +159,28 @@ def editar_aluno(id):
     aluno = Aluno.query.get_or_404(id)
     
     if request.method == 'POST':
-        # Obtém dados do formulário
         nome = request.form.get('nome')
         email = request.form.get('email')
         matricula = request.form.get('matricula')
         
-        # Validações
         if not all([nome, email, matricula]):
             flash('Nome, e-mail e matrícula são obrigatórios.', 'danger')
             return render_template('alunos/editar.html', aluno=aluno)
         
-        # Verifica se nova matrícula já existe (e não é a mesma)
         if matricula != aluno.matricula:
             if Aluno.query.filter_by(matricula=matricula).first():
                 flash('Matrícula já cadastrada por outro aluno.', 'danger')
                 return render_template('alunos/editar.html', aluno=aluno)
         
-        # Verifica se novo email já existe (e não é o mesmo)
         if email != aluno.email:
             if Aluno.query.filter_by(email=email).first():
                 flash('E-mail já cadastrado por outro aluno.', 'danger')
                 return render_template('alunos/editar.html', aluno=aluno)
         
-        # Atualiza dados
         aluno.nome = nome
         aluno.email = email
         aluno.matricula = matricula
         
-        # Se uma nova senha foi fornecida, atualiza
         nova_senha = request.form.get('nova_senha')
         if nova_senha:
             if len(nova_senha) < 6:
@@ -270,12 +223,8 @@ def historico_aluno(id):
     """Visualiza o histórico de presenças de um aluno"""
     
     aluno = Aluno.query.get_or_404(id)
+    presencas = Presenca.query.filter_by(aluno_id=id).order_by(Presenca.data.desc()).all()
     
-    # Busca presenças ordenadas por data (mais recentes primeiro)
-    presencas = Presenca.query.filter_by(aluno_id=id)\
-        .order_by(Presenca.data.desc()).all()
-    
-    # Calcula estatísticas
     total_aulas = len(presencas)
     presencas_count = sum(1 for p in presencas if p.presente)
     faltas_count = total_aulas - presencas_count
@@ -291,9 +240,7 @@ def historico_aluno(id):
                          faltas_justificadas=faltas_justificadas,
                          percentual=percentual)
 
-# Registrar funções auxiliares para os templates
-from flask import current_app
-
+# Funções auxiliares para os templates
 @bp.app_context_processor
 def utility_processor():
     return {
