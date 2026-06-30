@@ -128,14 +128,6 @@ Acesso seguro com matrícula e senha.
 
 `python run.py`
 
-Acesse `http://localhost:5000` no navegador
-
-### Credenciais de Acesso
-| Campo | Valor |
-|-------|-------|
-| Matrícula | PROF001 |
-| Senha | admin123 |
-
 ---
 
 ## Estrutura do Projeto
